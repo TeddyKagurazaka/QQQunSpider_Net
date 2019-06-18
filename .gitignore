@@ -3,3 +3,11 @@
 ################################################################################
 
 /qqQunUnitTest/bin/Debug
+/qqQunUnitTest/obj
+/qqQunSupport/bin/Debug
+/qqQunSupport/obj
+/qqQunSearch_CLI/bin/Debug
+/qqQunSearch_CLI/obj/Debug
+/qqQunSearch_CLI/obj/Release
+/packages
+/.vs

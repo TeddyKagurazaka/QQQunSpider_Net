@@ -23,45 +23,27 @@ namespace qqQunSearch_CLI
             int Page = 0;
             int Limit = 20;
 
-            while (true)
+            var result3 = qunModule.RequestUserFriend();
+
+            var result2 = qunModule.RequestQun("DNF", Page.ToString(), Limit.ToString());
+            if (result2[0].ContainsKey("error"))
             {
-                int getCount;
-                var result2 = qunModule.RequestQun("DNF", Page.ToString(), Limit.ToString());
-                if (result2[0].ContainsKey("error"))
-                {
-                    Console.WriteLine("=======触发了反爬虫，请稍后再试========");
-                    break;
-                }
-                else
-                {
-                    getCount = result2.Count;
-                    foreach(var resultDict in result2)
-                    {
-                        Console.WriteLine("====================");
-                        Console.WriteLine("群ID:" + resultDict["code"]);
-                        Console.WriteLine("群创建人QQ:" + resultDict["owner_uin"]);
-                        Console.WriteLine("群名:" + resultDict["name"]);
-                        Console.WriteLine("群简介:" + resultDict["memo"]);
-                        Console.WriteLine("====================");
-                    }
-
-                    if (getCount != Limit)
-                    {
-                        //到最后了
-                        Console.WriteLine("已经最后一页了");
-                    }
-                    else
-                    {
-                        Console.Write("获取下一页?(y/n)");
-                        if (Console.ReadLine().ToLower() != "y")
-                            break;
-                        else
-                            Page++;
-                    }
-                }
-
-                
+                Console.WriteLine("=======触发了反爬虫，请稍后再试========");
+                return;
             }
+            else
+            {
+                foreach (var resultDict in result2)
+                {
+                    Console.WriteLine("====================");
+                    Console.WriteLine("群ID:" + resultDict["code"]);
+                    Console.WriteLine("群创建人QQ:" + resultDict["owner_uin"]);
+                    Console.WriteLine("群名:" + resultDict["name"]);
+                    Console.WriteLine("群简介:" + resultDict["memo"]);
+                    Console.WriteLine("====================");
+                }
+            }
+
             Console.WriteLine("完成");
             Console.ReadLine();
         }
