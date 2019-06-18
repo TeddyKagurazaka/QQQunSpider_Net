@@ -22,7 +22,7 @@ namespace qqQunSupport
             /// <summary>
             /// 获取群成员API入口
             /// </summary>
-            public static ApiType RequestMember { get { return new ApiType("http://qun.qq.com/cgi-bin/qun_mgr/search_group_members"); } }
+            public static ApiType RequestMember { get { return new ApiType("https://qun.qq.com/cgi-bin/qun_mgr/search_group_members"); } }
             /// <summary>
             /// 获取本账号好友列表
             /// </summary>
@@ -31,7 +31,10 @@ namespace qqQunSupport
             /// 获取本账号加群列表
             /// </summary>
             public static ApiType RequestUserGroup { get { return new ApiType ("https://qun.qq.com/cgi-bin/qun_mgr/get_group_list"); } }
-
+            /// <summary>
+            /// 获取本群统计
+            /// </summary>
+            public static ApiType RequestQunStatistics { get { return new ApiType("http://web.qun.qq.com/cgi-bin/misc/statistic_group_member"); } }
         }
         /// <summary>
         /// 用户所在的群的类型
@@ -165,6 +168,45 @@ namespace qqQunSupport
                 return null;
             }
         }
+        /// <summary>
+        /// 获取群概括(男女、地区、活跃群成员头像)
+        /// </summary>
+        /// <param name="qunID"></param>
+        /// <returns></returns>
+        public Dictionary<string,object> RequestQunStatistics(string qunID)
+        {
+            try
+            {
+                var body = string.Format("bkn={0}&gc={1}&callback=init", BKN,qunID);
+                var result = makeRequest(ApiType.RequestQunStatistics.Value, body);
+                if (result == null) return null;
+
+                if (result["ec"].ToString() != "0")
+                {
+                    return new Dictionary<string, object>()
+                        {
+                            {"error","无结果或反爬虫" },
+                            {"code","-1" },
+                            {"data",result }
+                        };
+                }
+
+                var returnDict = new Dictionary<string, object>();
+                foreach (string keys in new string[] { "gender", "age", "provice" })
+                {
+                    var info = JsonConvert.DeserializeObject<Dictionary<string, string>>(result[keys].ToString());
+                    returnDict[keys] = info;
+                }
+                var tops = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(result["tops"].ToString());
+                returnDict["tops"] = tops;
+
+                return returnDict;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         #region 内部操作
         /// <summary>
@@ -192,6 +234,16 @@ namespace qqQunSupport
             }
             else
                 return JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result[key].ToString());
+        }
+
+        /// <summary>
+        /// 将群信息的标签字段转为List，此字段内一般包含成员数量
+        /// </summary>
+        /// <param name="labeljson">Lebel项的JSON字符串</param>
+        /// <returns>Label项的List数组</returns>
+        public List<Dictionary<string, string>> LabelToList(string labeljson)
+        {
+            return JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(labeljson);
         }
 
         /// <summary>

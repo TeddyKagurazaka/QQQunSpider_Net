@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace qqQunSearch_CLI
 {
@@ -24,8 +25,10 @@ namespace qqQunSearch_CLI
             int Limit = 20;
 
             var result3 = qunModule.RequestUserFriend();
-
             var result2 = qunModule.RequestQun("DNF", Page.ToString(), Limit.ToString());
+            var qqQunID = "";
+            var qqQunName = "";
+
             if (result2[0].ContainsKey("error"))
             {
                 Console.WriteLine("=======触发了反爬虫，请稍后再试========");
@@ -35,14 +38,45 @@ namespace qqQunSearch_CLI
             {
                 foreach (var resultDict in result2)
                 {
+                    qqQunID = resultDict["code"].ToString();
+                    qqQunName = resultDict["name"].ToString();
                     Console.WriteLine("====================");
-                    Console.WriteLine("群ID:" + resultDict["code"]);
+                    Console.WriteLine("群ID:" + qqQunID);
                     Console.WriteLine("群创建人QQ:" + resultDict["owner_uin"]);
-                    Console.WriteLine("群名:" + resultDict["name"]);
+                    Console.WriteLine("群名:" + qqQunName);
                     Console.WriteLine("群简介:" + resultDict["memo"]);
+                    var LabelList = qunModule.LabelToList(resultDict["label"].ToString());
+                    Console.WriteLine("群人数:" + LabelList[0]["name"]);
                     Console.WriteLine("====================");
+                    break;
                 }
             }
+
+            var result4 = qunModule.RequestQunStatistics(qqQunID);
+            if (result4.ContainsKey("error"))
+            {
+                Console.WriteLine("=======请求详细信息失败=======");
+                return;
+            }
+            Console.WriteLine(qqQunName + "(ID:" + qqQunID + ")的统计信息");
+            Console.WriteLine("男:" + (result4["gender"] as Dictionary<string, string>)["boy"]);
+            Console.WriteLine("女:" + (result4["gender"] as Dictionary<string, string>)["girl"]);
+            Console.WriteLine("未知:" + (result4["gender"] as Dictionary<string, string>)["other"]);
+            Console.WriteLine("年龄:");
+            var ageDict = (result4["age"] as Dictionary<string, string>);
+            foreach (var ageResult in ageDict.Keys)
+                Console.WriteLine("\t" + ageResult + ":" + ageDict[ageResult]);
+
+            Console.WriteLine("地区:");
+            var provinceDict = (result4["provice"] as Dictionary<string, string>);
+            foreach (var ageResult in provinceDict.Keys)
+                Console.WriteLine("\t" + ageResult + ":" + provinceDict[ageResult]);
+
+            Console.WriteLine("活跃用户昵称");
+            var topUserID = (result4["tops"] as List<Dictionary<string, string>>);
+            foreach (var userInfo in topUserID)
+                Console.WriteLine("\t" + userInfo["nick"]);
+
 
             Console.WriteLine("完成");
             Console.ReadLine();
